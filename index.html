@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hamza - Countdown to 18</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            cursor: default;
+        }
+
+        /* Custom Cursor - Hidden */
+        .cursor {
+            display: none;
+        }
+
+        .cursor-follower {
+            display: none;
+        }
+
+        /* Gradient Background */
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(50, 50, 50, 0.3) 0%, rgba(10, 10, 10, 1) 50%);
+            pointer-events: none;
+            transition: background 0.3s ease;
+        }
+
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            z-index: 10;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .logo {
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: -3px;
+            background: linear-gradient(135deg, #ffffff 0%, #666666 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888888;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        .main-section {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            padding: 80px 60px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 1s ease-out 0.2s backwards;
+            transition: all 0.5s ease;
+        }
+
+        .main-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .main-section::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .main-section:hover::after {
+            opacity: 1;
+        }
+
+        .countdown-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #888888;
+            margin-bottom: 50px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 300;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .countdown-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ffffff, transparent);
+            transition: width 0.5s ease;
+        }
+
+        .main-section:hover .countdown-title::after {
+            width: 200px;
+        }
+
+        .countdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto 50px;
+        }
+
+        .countdown-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown-item::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+        }
+
+        .countdown-item:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .countdown-item:hover {
+            transform: translateY(-10px) scale(1.05);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .countdown-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.7s ease;
+        }
+
+        .countdown-item:hover::after {
+            left: 100%;
+        }
+
+        .countdown-number {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .countdown-item:hover .countdown-number {
+            transform: scale(1.1);
+        }
+
+        .countdown-label {
+            font-size: 0.95rem;
+            color: #666666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+            transition: color 0.3s ease;
+        }
+
+        .countdown-item:hover .countdown-label {
+            color: #aaaaaa;
+        }
+
+        .progress-section {
+            margin-top: 50px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s ease;
+        }
+
+        .progress-section:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-label {
+            text-align: center;
+            color: #888888;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            height: 16px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #555555 0%, #888888 50%, #ffffff 100%);
+            border-radius: 20px;
+            transition: width 1s ease-out;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-percentage {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+
+        .glow-effect {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            transition: all 0.15s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .countdown-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .countdown-number {
+                font-size: 2.8rem;
+            }
+
+            .main-section {
+                padding: 50px 30px;
+            }
+        }
+
+        /* Ripple effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            animation: ripple-animation 1s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-animation {
+            from {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            to {
+                width: 100px;
+                height: 100px;
+                opacity: 0;
+            }
+        }
+
+        /* Celebration Mode Styles */
+        body.celebration {
+            background: linear-gradient(135deg, #1a0a00 0%, #2a1a0a 100%);
+        }
+
+        body.celebration .gradient-bg {
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 215, 0, 0.3) 0%, rgba(42, 26, 10, 1) 50%);
+        }
+
+        body.celebration .logo {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: goldPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes goldPulse {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        body.celebration .main-section {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
+        }
+
+        body.celebration .countdown-item {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        body.celebration .countdown-number {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        body.celebration .progress-bar {
+            background: linear-gradient(90deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        body.celebration .countdown-title {
+            color: #FFD700;
+            font-size: 2rem;
+            animation: celebrationPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes celebrationPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .confetti.gold { background: #FFD700; }
+        .confetti.orange { background: #FFA500; }
+        .confetti.darkorange { background: #FF8C00; }
+        .confetti.white { background: #FFFFFF; }
+        .confetti.silver { background: #C0C0C0; }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti.square {
+            border-radius: 0;
+        }
+
+        .confetti.circle {
+            border-radius: 50%;
+        }
+
+        .confetti.rectangle {
+            width: 15px;
+            height: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-bg"></div>
+    <div class="glow-effect"></div>
+    <div class="noise"></div>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">HAMZA v2.4.26</div>
+            <div class="subtitle">Countdown to Freedom</div>
+        </header>
+
+        <div class="main-section" id="mainSection">
+            <div class="countdown-title">Time Until I Turn 18</div>
+            
+            <div class="countdown-grid">
+                <div class="countdown-item">
+                    <div class="countdown-number" id="days">00</div>
+                    <div class="countdown-label">Days</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="hours">00</div>
+                    <div class="countdown-label">Hours</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="minutes">00</div>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="seconds">00</div>
+                    <div class="countdown-label">Seconds</div>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-label">Journey to Driver's License</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="progress-percentage" id="progressPercentage">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mouse tracking for effects
+        const glowEffect = document.querySelector('.glow-effect');
+        const gradientBg = document.querySelector('.gradient-bg');
+        const mainSection = document.getElementById('mainSection');
+
+        let mouseX = 0, mouseY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            // Update gradient background
+            const x = (e.clientX / window.innerWidth) * 100;
+            const y = (e.clientY / window.innerHeight) * 100;
+            gradientBg.style.setProperty('--mouse-x', x + '%');
+            gradientBg.style.setProperty('--mouse-y', y + '%');
+
+            // Update glow effect
+            glowEffect.style.left = (e.clientX - 300) + 'px';
+            glowEffect.style.top = (e.clientY - 300) + 'px';
+
+            // Hover effect for main section
+            const rect = mainSection.getBoundingClientRect();
+            const x2 = e.clientX - rect.left;
+            const y2 = e.clientY - rect.top;
+            mainSection.style.setProperty('--mouse-x', x2 + 'px');
+            mainSection.style.setProperty('--mouse-y', y2 + 'px');
+            
+            if (mainSection.querySelector('::after')) {
+                mainSection.style.setProperty('--after-x', x2 + 'px');
+                mainSection.style.setProperty('--after-y', y2 + 'px');
+            }
+        });
+
+        // Hover effects for interactive elements
+        const interactiveElements = document.querySelectorAll('.countdown-item, .logo, .progress-section');
+        interactiveElements.forEach(el => {
+            el.style.cursor = 'pointer';
+        });
+
+        // Click ripple effect
+        document.addEventListener('click', (e) => {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = (e.clientX - 50) + 'px';
+            ripple.style.top = (e.clientY - 50) + 'px';
+            document.body.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 1000);
+        });
+
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.width = Math.random() * 4 + 1 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.animationDelay = Math.random() * 8 + 's';
+            particle.style.animationDuration = (Math.random() * 6 + 6) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Countdown logic
+        const targetDate = new Date('February 4, 2026 00:00:00').getTime();
+        const birthDate = new Date('February 4, 2008 00:00:00').getTime();
+        let celebrationTriggered = false;
+
+        function createConfetti() {
+            const colors = ['gold', 'orange', 'darkorange', 'white', 'silver'];
+            const shapes = ['square', 'circle', 'rectangle'];
+            
+            for (let i = 0; i < 150; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = `confetti ${colors[Math.floor(Math.random() * colors.length)]} ${shapes[Math.floor(Math.random() * shapes.length)]}`;
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    confetti.style.opacity = Math.random();
+                    confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear forwards`;
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 5000);
+                }, i * 30);
+            }
+        }
+
+        function triggerCelebration() {
+            if (celebrationTriggered) return;
+            celebrationTriggered = true;
+            
+            // Change theme to gold
+            document.body.classList.add('celebration');
+            
+            // Create confetti burst
+            createConfetti();
+            
+            // Continue confetti every 3 seconds
+            setInterval(createConfetti, 3000);
+        }
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                document.querySelector('.countdown-title').textContent = '🎉 FINALLY 18! 🎉';
+                document.getElementById('progressBar').style.width = '100%';
+                document.getElementById('progressPercentage').textContent = '100%';
+                
+                triggerCelebration();
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+
+            // Calculate progress
+            const totalTime = targetDate - birthDate;
+            const timePassed = now - birthDate;
+            const progress = (timePassed / totalTime) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressPercentage').textContent = progress.toFixed(2) + '%';
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // Parallax effect on scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('header');
+            parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
+        });
+    </script>
+</body>
+</html>
